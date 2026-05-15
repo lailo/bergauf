@@ -27,8 +27,14 @@ Run from source (requires [Bun](https://bun.sh) ≥ 1.2):
 
 ```bash
 bun install
-bun run src/index.ts
+bun run dev          # MCP Inspector UI in the browser — call tools, inspect responses
+bun run dev:stdio    # or the raw stdio server (for piping JSON-RPC by hand)
 ```
+
+`bun run dev` wraps the server in [MCP Inspector](https://github.com/modelcontextprotocol/inspector),
+which auto-discovers the seven tools, renders their Zod input schemas as forms, and shows
+both the pretty-printed and structured outputs side-by-side. First run downloads the
+Inspector via `bunx`; subsequent runs hit the cache.
 
 Or build the compiled binary for your platform:
 
