@@ -118,4 +118,7 @@ All free, public, no auth:
 
 ## License
 
-MIT.
+MIT with [Commons Clause](https://commonsclause.com/) — free to use, modify,
+and self-host; selling the software (including hosted/commercial offerings
+whose value derives substantially from it) requires a separate license.
+See [LICENSE](./LICENSE).
