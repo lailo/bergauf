@@ -23,39 +23,85 @@ Each tool returns small JSON payloads with both `content` (text) and
 
 ## Install
 
-Run from source (requires [Bun](https://bun.sh) ≥ 1.2):
+### Homebrew (macOS)
 
 ```bash
-bun install
-bun run dev          # MCP Inspector UI in the browser — call tools, inspect responses
-bun run dev:stdio    # or the raw stdio server (for piping JSON-RPC by hand)
+brew tap lailo/tap
+brew install bergauf
 ```
 
-`bun run dev` wraps the server in [MCP Inspector](https://github.com/modelcontextprotocol/inspector),
-which auto-discovers the seven tools, renders their Zod input schemas as forms, and shows
-both the pretty-printed and structured outputs side-by-side. First run downloads the
-Inspector via `bunx`; subsequent runs hit the cache.
+This puts `bergauf` on your `$PATH`. For Claude Desktop, point `command` at the
+plain binary name (see [Claude Desktop config](#claude-desktop-config) below).
 
-Or build the compiled binary for your platform:
+### Manual download
+
+Pick the binary for your platform from the
+[latest release](https://github.com/lailo/bergauf/releases/latest). Each
+release also ships a `SHA256SUMS.txt` for verification.
+
+#### macOS
 
 ```bash
-bun run build:darwin-arm64    # → dist/bergauf-darwin-arm64
-bun run build:darwin-x64      # → dist/bergauf-darwin-x64
-bun run build:linux-x64       # → dist/bergauf-linux-x64
-bun run build:linux-arm64     # → dist/bergauf-linux-arm64
-bun run build:windows-x64     # → dist/bergauf-windows-x64.exe
-bun run build                 # all five
+# Apple Silicon → bergauf-darwin-arm64.tar.gz
+# Intel         → bergauf-darwin-x64.tar.gz
+tar -xzf bergauf-darwin-arm64.tar.gz
+chmod +x bergauf
+sudo mv bergauf /usr/local/bin/
+xattr -d com.apple.quarantine /usr/local/bin/bergauf   # clear Gatekeeper flag
 ```
+
+Easier: use [Homebrew](#homebrew-macos) above.
+
+#### Linux
+
+```bash
+# x86_64 → bergauf-linux-x64
+# arm64  → bergauf-linux-arm64
+curl -L -o bergauf https://github.com/lailo/bergauf/releases/latest/download/bergauf-linux-x64
+chmod +x bergauf
+sudo mv bergauf /usr/local/bin/
+```
+
+No-sudo variant: `mv bergauf ~/.local/bin/` (make sure `~/.local/bin` is on `$PATH`).
+
+#### Windows
+
+Download `bergauf-windows-x64.exe`, drop it in a stable folder, and add that
+folder to `PATH`. From PowerShell:
+
+```powershell
+$dest = "$env:LOCALAPPDATA\bergauf"
+New-Item -ItemType Directory -Force -Path $dest | Out-Null
+Move-Item bergauf-windows-x64.exe "$dest\bergauf.exe"
+[Environment]::SetEnvironmentVariable("Path", "$env:Path;$dest", "User")
+```
+
+Restart your shell. On first launch, SmartScreen may warn that the binary is
+unsigned — click "More info" → "Run anyway".
 
 ## Claude Desktop config
 
-Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+Add to `~/Library/Application Support/Claude/claude_desktop_config.json`.
+
+If you installed via Homebrew:
 
 ```json
 {
   "mcpServers": {
     "bergauf": {
-      "command": "/absolute/path/to/dist/bergauf-darwin-arm64"
+      "command": "bergauf"
+    }
+  }
+}
+```
+
+Or, for a manually downloaded binary, point at the absolute path:
+
+```json
+{
+  "mcpServers": {
+    "bergauf": {
+      "command": "/absolute/path/to/bergauf"
     }
   }
 }
@@ -88,6 +134,21 @@ The LLM composes the tools: `search_location` → `list_named_routes` →
 
 ## Development
 
+Requires [Bun](https://bun.sh) ≥ 1.2.
+
+```bash
+bun install
+bun run dev          # MCP Inspector UI in the browser — call tools, inspect responses
+bun run dev:stdio    # or the raw stdio server (for piping JSON-RPC by hand)
+```
+
+`bun run dev` wraps the server in [MCP Inspector](https://github.com/modelcontextprotocol/inspector),
+which auto-discovers the seven tools, renders their Zod input schemas as forms, and shows
+both the pretty-printed and structured outputs side-by-side. First run downloads the
+Inspector via `bunx`; subsequent runs hit the cache.
+
+Checks:
+
 ```bash
 bun test          # unit tests (no live API calls)
 bun run typecheck # tsc --noEmit
@@ -99,6 +160,17 @@ API client tests stub `fetch`; no fixtures are committed. The Wanderland
 attribute schema and a few transport edge cases were verified with live probes
 during initial development — see `src/tools/list-named-routes.ts` for the
 SwitzerlandMobility route-number → category convention.
+
+Build a compiled binary locally:
+
+```bash
+bun run build:darwin-arm64    # → dist/bergauf-darwin-arm64
+bun run build:darwin-x64      # → dist/bergauf-darwin-x64
+bun run build:linux-x64       # → dist/bergauf-linux-x64
+bun run build:linux-arm64     # → dist/bergauf-linux-arm64
+bun run build:windows-x64     # → dist/bergauf-windows-x64.exe
+bun run build                 # all five
+```
 
 ## External APIs
 

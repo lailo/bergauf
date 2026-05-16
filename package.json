@@ -1,6 +1,6 @@
 {
   "name": "bergauf",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "MCP server for planning hikes in Switzerland — Wanderland routes, elevation, weather, public transport.",
   "type": "module",
   "bin": {

@@ -55,6 +55,16 @@ jobs:
       - name: Build all targets
         run: bun run build
 
+      - name: Package macOS binaries as tarballs
+        working-directory: dist
+        run: |
+          cp bergauf-darwin-arm64 bergauf
+          tar -czf bergauf-darwin-arm64.tar.gz bergauf
+          rm bergauf
+          cp bergauf-darwin-x64 bergauf
+          tar -czf bergauf-darwin-x64.tar.gz bergauf
+          rm bergauf
+
       - name: Generate checksums
         working-directory: dist
         run: sha256sum bergauf-* > SHA256SUMS.txt
@@ -88,8 +98,44 @@ jobs:
           fail_on_unmatched_files: true
           files: |
             dist/bergauf-darwin-arm64
+            dist/bergauf-darwin-arm64.tar.gz
             dist/bergauf-darwin-x64
+            dist/bergauf-darwin-x64.tar.gz
             dist/bergauf-linux-x64
             dist/bergauf-linux-arm64
             dist/bergauf-windows-x64.exe
             dist/SHA256SUMS.txt
+
+  bump-tap:
+    name: Bump Homebrew formula
+    needs: [build, release]
+    runs-on: ubuntu-latest
+    if: ${{ !contains(needs.build.outputs.version, '-') }}
+    steps:
+      - name: Bump arm64 url and sha
+        uses: mislav/bump-homebrew-formula-action@v3
+        with:
+          formula-name: bergauf
+          formula-path: Formula/bergauf.rb
+          homebrew-tap: lailo/homebrew-tap
+          base-branch: main
+          create-pullrequest: false
+          download-url: https://github.com/lailo/bergauf/releases/download/${{ needs.build.outputs.version }}/bergauf-darwin-arm64.tar.gz
+          commit-message: |
+            bergauf ${{ needs.build.outputs.version }} (arm64)
+        env:
+          COMMITTER_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+
+      - name: Bump x64 url and sha
+        uses: mislav/bump-homebrew-formula-action@v3
+        with:
+          formula-name: bergauf
+          formula-path: Formula/bergauf.rb
+          homebrew-tap: lailo/homebrew-tap
+          base-branch: main
+          create-pullrequest: false
+          download-url: https://github.com/lailo/bergauf/releases/download/${{ needs.build.outputs.version }}/bergauf-darwin-x64.tar.gz
+          commit-message: |
+            bergauf ${{ needs.build.outputs.version }} (x64)
+        env:
+          COMMITTER_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
