@@ -125,17 +125,3 @@ jobs:
             bergauf ${{ needs.build.outputs.version }} (arm64)
         env:
           COMMITTER_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
-
-      - name: Bump x64 url and sha
-        uses: mislav/bump-homebrew-formula-action@v3
-        with:
-          formula-name: bergauf
-          formula-path: Formula/bergauf.rb
-          homebrew-tap: lailo/homebrew-tap
-          base-branch: main
-          create-pullrequest: false
-          download-url: https://github.com/lailo/bergauf/releases/download/${{ needs.build.outputs.version }}/bergauf-darwin-x64.tar.gz
-          commit-message: |
-            bergauf ${{ needs.build.outputs.version }} (x64)
-        env:
-          COMMITTER_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
